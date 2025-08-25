@@ -5,10 +5,13 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
+use App\Http\Resources\ResponseResource;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -28,18 +31,17 @@ class AuthController extends Controller
 
                 $token = JWTAuth::fromUser($user);
 
-                return response()->json([
+                return new ResponseResource(true, 'Registration Success', [
                     'token' => $token, 
                     'user' => UserResource::make($user)
-                ], 201);
+                ]);
             });
         } catch (Exception $e) {
             report($e);
 
-            return response()->json([
-                'error'   => 'Registration failed',
-                'message' => $e->getMessage()
-            ], 500);
+            return (new ResponseResource(false, 'Registration Failed', $e->getMessage()))
+                ->response()
+                ->setStatusCode(500);
         }
     }
 
@@ -48,23 +50,24 @@ class AuthController extends Controller
         $credentials = $request->only('email', 'password');
 
         if (!$token = auth('api')->attempt($credentials)) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+            return (new ResponseResource(false, 'Login Failed', ''))
+                ->response()
+                ->setStatusCode(401);
         }
 
-        return $this->respondWithToken($token);
-    }
+        $payload = JWTAuth::setToken($token)->getPayload();
+        $expiresAt = Carbon::createFromTimestamp($payload->get('exp'), config('app.timezone'));
 
-    protected function respondWithToken($token)
-    {
-        return response()->json([
+        return (new ResponseResource(true, 'Login Success', [
             'token' => $token,
             'token_type'   => 'bearer',
-            'expires_in'   => auth('api')->factory()->getTTL() * 60,
-        ]);
+            'expires_at'   => $expiresAt->toDateTimeString(),
+        ]));
     }
 
     public function me()
     {
-        return response()->json(UserResource::make(auth()->user()));
+        $user = Auth::user();
+        return new ResponseResource(true, 'User Info', UserResource::make($user));
     }
 }

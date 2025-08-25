@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Note\StoreNoteRequest;
 use App\Http\Requests\Note\UpdateNoteRequest;
 use App\Http\Resources\NoteResource;
+use App\Http\Resources\ResponseResource;
+use App\Models\Note;
 use App\Repositories\NoteRepository;
 use Carbon\Carbon;
 use Exception;
@@ -24,10 +26,13 @@ class NoteController extends Controller
 
     public function index()
     {
-        $data = $this->notes->allByUser(auth()->id());
-        return response()->json(
-            NoteResource::collection($data)
-        );
+        $perPage = !empty($request->per_page) ? $request->per_page : 20;
+        $search = $request?->search ?? null;
+        $user = Auth::user();
+
+        $data = $this->notes->allByUser($user->id, $perPage, $search);
+
+        return new ResponseResource(true, 'List Notes', $data);
     }
 
     public function store(StoreNoteRequest $request)
@@ -44,31 +49,36 @@ class NoteController extends Controller
                     $user->id
                 );
 
-                return response()->json(
-                    NoteResource::make($note)
-                );
+                return new ResponseResource(true, 
+                    'Store Data Success', 
+                    NoteResource::make($note));
             });
         } catch (Exception $e) {
             report($e);
 
-            return response()->json([
-                'error'   => 'Store Data failed',
-                'message' => $e->getMessage()
-            ], 500);
+            return (new ResponseResource(false, 'Store Data Failed', $e->getMessage()))
+                ->response()
+                ->setStatusCode(500);
         }
     }
 
     public function show(string $id)
     {
         $note = $this->notes->findById($id, auth()->id());
-        return $note ? response()->json(NoteResource::make($note)) : response()->json(['error' => 'Not Found'], 404);
+        return $note ? 
+            (new ResponseResource(true, 'Note Data', NoteResource::make($note)))
+            : (new ResponseResource(false, 'Data Not Found', ''))
+                ->response()
+                ->setStatusCode(404);
     }
 
     public function update(UpdateNoteRequest $request, string $id)
     {
         $note = $this->notes->findById($id, auth()->id());
         if (!$note) {
-            return response()->json(['error' => 'Not Found'], 404);
+            return (new ResponseResource(false, 'Data Not Found', ''))
+                ->response()
+                ->setStatusCode(404);
         }
 
         try {
@@ -79,17 +89,14 @@ class NoteController extends Controller
                     $payload
                 );
 
-                return response()->json(
-                    NoteResource::make($note)
-                );
+                return (new ResponseResource(true, 'Update Data Success', NoteResource::make($note)));
             });
         } catch (Exception $e) {
             report($e);
 
-            return response()->json([
-                'error'   => 'Update Data failed',
-                'message' => $e->getMessage()
-            ], 500);
+            return (new ResponseResource(false, 'Update Data Failed', $e->getMessage()))
+                ->response()
+                ->setStatusCode(500);
         }
     }
 
@@ -97,23 +104,23 @@ class NoteController extends Controller
     {
         $note = $this->notes->findById($id, auth()->id());
         if (!$note) {
-            return response()->json(['error' => 'Not Found'], 404);
+            return (new ResponseResource(false, 'Data Not Found', ''))
+                ->response()
+                ->setStatusCode(404);
         }
 
         try {
             $this->notes->delete($note);
 
-            return response()->json([
-                'error'   => '',
-                'message' => 'Data Successfully deleted'
-            ]);
+            return (new ResponseResource(true, 'Data Successfully Deleted', ''))
+                ->response()
+                ->setStatusCode(200);
         } catch (Exception $e) {
             report($e);
 
-            return response()->json([
-                'error'   => 'Delete Data failed',
-                'message' => $e->getMessage()
-            ], 500);
+            return (new ResponseResource(false, 'Delete Data Failed', ''))
+                ->response()
+                ->setStatusCode(500);
         }
     }
 }

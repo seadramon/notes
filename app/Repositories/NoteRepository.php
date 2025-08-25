@@ -3,13 +3,18 @@ namespace App\Repositories;
 
 use App\Models\Note;
 use Carbon\Carbon;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
 class NoteRepository
 {
-    public function allByUser(string $userId): ?Collection
+    public function allByUser(string $userId, ?int $perPage, ?string $search): ?LengthAwarePaginator
     {
-        return Note::where('user_id', $userId)->get();
+        return Note::where('user_id', $userId)
+            ->when($search, function($query) use($search){
+                $query->whereAny(['title', 'content'], 'like', "%{$search}%");
+            })
+            ->paginate($perPage);
     }
 
     public function findById(string $id, string $userId): ?Note
