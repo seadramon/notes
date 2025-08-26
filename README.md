@@ -68,3 +68,79 @@ php artisan migrate
 - tymon/jwt-auth
 - MySQL/PostgreSQL
 - Composer
+
+## Membuat Environment di POSTMAN
+
+### Metode 1: Melalui Sidebar
+
+1. Buka aplikasi Postman
+    
+2. Di sidebar kiri, klik **"Environments"**
+    
+3. Klik tombol **"+"** atau **"Create Environment"**
+    
+4. Beri nama environment, contoh: `local`
+    
+
+### Metode 2: Melalui Settings Icon
+
+1. Klik icon gear (⚙️) di pojok kanan atas
+    
+2. Pilih **"Manage Environments"**
+    
+3. Klik **"Add"**
+    
+4. Beri nama environment
+    
+
+## Langkah 2: Menambahkan Variables
+
+Untuk project Laravel dengan JWT, tambahkan variabel berikut:
+
+### Basic Variables
+
+| Variable | Initial Value | Current Value | Description |
+| --- | --- | --- | --- |
+| `host-v1` | `http://localhost:8000/api/v1/` | `http://localhost:8000/api/v1/` | Base URL aplikasi |
+
+### Cara Menambahkan Variables:
+
+1. Di form environment, klik area "Variable"
+    
+2. Masukkan nama variable (contoh: `host-v1`)
+    
+3. Masukkan "Initial Value" (nilai default)
+    
+4. Masukkan "Current Value" (nilai yang sedang digunakan)
+    
+5. Klik tombol **"Save"**
+    
+
+## Langkah 3: Mengaktifkan Environment
+
+1. Klik dropdown di pojok kanan atas (biasanya bertulisan "No Environment")
+    
+2. Pilih environment yang baru dibuat (contoh: `local`)
+    
+3. Environment akan aktif dan siap digunakan
+    
+
+## Langkah 4: Menggunakan Variables dalam Request
+
+### Menggunakan Variable di URL
+
+Ganti URL hardcode dengan variable:
+
+**Sebelum:**
+
+```
+http://localhost:8000/api/login
+
+ ```
+
+**Sesudah:**
+
+```
+{{host-v1}}login
+
+ ```
