@@ -95,7 +95,7 @@ php artisan migrate
 
 ## Langkah 2: Menambahkan Variables
 
-Untuk project Laravel dengan JWT, tambahkan variabel berikut:
+Tambahkan variabel berikut:
 
 ### Basic Variables
 
