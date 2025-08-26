@@ -66,7 +66,7 @@ php artisan migrate
 - Laravel 11.x
 - PHP 8.2
 - tymon/jwt-auth
-- MySQL/PostgreSQL
+- MySQL
 - Composer
 
 ## Membuat Environment di POSTMAN
