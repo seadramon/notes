@@ -134,7 +134,7 @@ Ganti URL hardcode dengan variable:
 **Sebelum:**
 
 ```
-http://localhost:8000/api/login
+http://localhost:8000/api/v1/login
 
  ```
 
