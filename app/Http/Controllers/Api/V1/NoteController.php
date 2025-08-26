@@ -24,9 +24,9 @@ class NoteController extends Controller
         $this->notes = $notes;
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $perPage = !empty($request->per_page) ? $request->per_page : 20;
+        $perPage = $request->per_page ?? 20;
         $search = $request?->search ?? null;
         $user = Auth::user();
 
